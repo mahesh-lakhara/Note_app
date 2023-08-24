@@ -9,6 +9,7 @@ import com.mmm.note_app.Database.RoomDB
 import com.mmm.note_app.Entity.NoteEntity
 import com.mmm.note_app.databinding.ActivityMainBinding
 import com.mmm.note_app.databinding.AddDialogBinding
+import com.mmm.note_app.databinding.UpdateDialogBinding
 import java.text.SimpleDateFormat
 import java.util.ArrayList
 import java.util.Date
@@ -36,7 +37,7 @@ class MainActivity : AppCompatActivity() {
             addNoteDialog()
 
         }
-        adpter = NotesAdapter{
+        adpter = NotesAdapter({
 
             var isPin = false
             if (it.pin){
@@ -52,10 +53,58 @@ class MainActivity : AppCompatActivity() {
             db.note().updateNote(data)
             adpter.update(filterNote(db.note().getNotes()))
 
-        }
+        },{
+            Update(it)
+
+//            db.note().updateNote(it)
+//            adpter.update(filterNote(db.note().getNotes()))
+
+        },{
+
+
+            db.note().deleteNote(it)
+
+
+
+        })
         adpter.setNotes(filterNote(db.note().getNotes()))
         binding.noteList.layoutManager = StaggeredGridLayoutManager(2,StaggeredGridLayoutManager.VERTICAL)
         binding.noteList.adapter = adpter
+
+    }
+
+    private fun Update(noteEntity : NoteEntity) {
+        var dialog = Dialog(this)
+        var b = UpdateDialogBinding.inflate(layoutInflater)
+        dialog.setContentView(b.root)
+
+        b.btnsave.setOnClickListener {
+
+            var title = b.edtTitle.text.toString()
+            var text = b.edtText.text.toString()
+            var format = SimpleDateFormat("DD/MM/YYYY hh:mm")
+            var current = format.format(Date())
+
+            var it = NoteEntity(title, text, current,false)
+            var noteEntity = db.note().getNotes()
+            db.note().updateNote(it)
+
+            for (it in noteEntity) {
+                it.title = title
+                it.text= text
+
+
+                var data = NoteEntity(title, text, current,false)
+                db.note().updateNote(it)
+            }
+
+            adpter.update(db.note().getNotes())
+//            adpter.update(filterNote(db.note().getNotes()))
+//            db.note().updateNote(noteEntity)
+            dialog.dismiss()
+        }
+
+        dialog.show()
 
     }
 
